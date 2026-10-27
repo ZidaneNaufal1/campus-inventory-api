@@ -1,0 +1,33 @@
+{
+  "openapi": "3.0.3",
+  "info": {"title": "Campus Inventory API", "version": "0.1.0", "description": "Local development MVP. No authentication; do not expose publicly."},
+  "servers": [{"url": "http://127.0.0.1:8768", "description": "Local development only; port is configurable"}],
+  "paths": {
+    "/assets": {
+      "get": {"summary": "List up to 1000 assets", "parameters": [{"name": "available", "in": "query", "schema": {"type": "string", "enum": ["true", "false"]}, "description": "Filter by whether at least one unit is available"}], "responses": {"200": {"description": "Assets", "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "#/components/schemas/Asset"}}}}}, "400": {"$ref": "#/components/responses/Error"}, "503": {"$ref": "#/components/responses/Error"}}},
+      "post": {"summary": "Create an asset", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AssetInput"}}}}, "responses": {"201": {"description": "Created", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Asset"}}}}, "400": {"$ref": "#/components/responses/Error"}, "413": {"$ref": "#/components/responses/Error"}, "415": {"$ref": "#/components/responses/Error"}, "503": {"$ref": "#/components/responses/Error"}}}
+    },
+    "/borrowers": {
+      "get": {"summary": "List up to 1000 borrowers", "responses": {"200": {"description": "Borrowers", "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "#/components/schemas/Borrower"}}}}}, "400": {"$ref": "#/components/responses/Error"}, "503": {"$ref": "#/components/responses/Error"}}},
+      "post": {"summary": "Create a borrower", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BorrowerInput"}}}}, "responses": {"201": {"description": "Created", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Borrower"}}}}, "400": {"$ref": "#/components/responses/Error"}, "413": {"$ref": "#/components/responses/Error"}, "415": {"$ref": "#/components/responses/Error"}, "503": {"$ref": "#/components/responses/Error"}}}
+    },
+    "/loans": {
+      "get": {"summary": "List up to 1000 loans", "parameters": [{"name": "status", "in": "query", "schema": {"type": "string", "enum": ["active", "returned"]}}], "responses": {"200": {"description": "Loans", "content": {"application/json": {"schema": {"type": "array", "items": {"$ref": "#/components/schemas/Loan"}}}}}, "400": {"$ref": "#/components/responses/Error"}, "503": {"$ref": "#/components/responses/Error"}}},
+      "post": {"summary": "Borrow one available unit", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoanInput"}}}}, "responses": {"201": {"description": "Loan created", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Loan"}}}}, "400": {"$ref": "#/components/responses/Error"}, "404": {"$ref": "#/components/responses/Error"}, "409": {"$ref": "#/components/responses/Error"}, "413": {"$ref": "#/components/responses/Error"}, "415": {"$ref": "#/components/responses/Error"}, "503": {"$ref": "#/components/responses/Error"}}}
+    },
+    "/loans/{id}/return": {
+      "post": {"summary": "Return an active loan", "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "minimum": 1, "maximum": 2147483647}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "additionalProperties": false, "example": {}}}}}, "responses": {"200": {"description": "Loan returned", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Loan"}}}}, "400": {"$ref": "#/components/responses/Error"}, "404": {"$ref": "#/components/responses/Error"}, "409": {"$ref": "#/components/responses/Error"}, "413": {"$ref": "#/components/responses/Error"}, "415": {"$ref": "#/components/responses/Error"}, "503": {"$ref": "#/components/responses/Error"}}}
+    }
+  },
+  "components": {
+    "responses": {"Error": {"description": "Request rejected or storage unavailable", "content": {"application/json": {"schema": {"type": "object", "required": ["error"], "properties": {"error": {"type": "string"}}}}}}},
+    "schemas": {
+      "AssetInput": {"type": "object", "additionalProperties": false, "required": ["name", "quantity"], "properties": {"name": {"type": "string", "minLength": 1, "maxLength": 100}, "quantity": {"type": "integer", "minimum": 1, "maximum": 100000}}},
+      "Asset": {"type": "object", "required": ["id", "name", "quantity", "available"], "properties": {"id": {"type": "integer"}, "name": {"type": "string"}, "quantity": {"type": "integer"}, "available": {"type": "integer"}}},
+      "BorrowerInput": {"type": "object", "additionalProperties": false, "required": ["name"], "properties": {"name": {"type": "string", "minLength": 1, "maxLength": 100}}},
+      "Borrower": {"type": "object", "required": ["id", "name"], "properties": {"id": {"type": "integer"}, "name": {"type": "string"}}},
+      "LoanInput": {"type": "object", "additionalProperties": false, "required": ["asset_id", "borrower_id"], "properties": {"asset_id": {"type": "integer", "minimum": 1, "maximum": 2147483647}, "borrower_id": {"type": "integer", "minimum": 1, "maximum": 2147483647}}},
+      "Loan": {"type": "object", "required": ["id", "asset_id", "borrower_id", "borrowed_at", "returned_at"], "properties": {"id": {"type": "integer"}, "asset_id": {"type": "integer"}, "borrower_id": {"type": "integer"}, "borrowed_at": {"type": "string", "format": "date-time"}, "returned_at": {"type": "string", "format": "date-time", "nullable": true}}}
+    }
+  }
+}
